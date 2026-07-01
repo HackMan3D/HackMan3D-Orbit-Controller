@@ -104,4 +104,14 @@ Designed by **Hackman3D**
 
 This project is released free of charge for the maker community.
 
+Credits
+
+Special thanks to NavCore for developing and maintaining the custom Arduino board package that enables native 3Dconnexion compatibility.
+
+This project uses NavCore's board package. If you'd like to learn more or support their work, please visit:
+
+https://github.com/NavCoree/3D-controller-Board-package
+
+Without this work, native 3Dconnexion support on the Arduino Pro Micro would not have been possible.
+
 If you like this project, don't forget to ⭐ star the repository!
