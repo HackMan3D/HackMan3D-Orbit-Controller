@@ -4,9 +4,13 @@
 ![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen)
 # Hackman3D Orbit Controller
 
-An open-source, low-cost 6-DOF 3D navigation controller designed for CAD, 3D modeling, digital sculpting, and other creative applications.
+<p align="center">
+  <img src="images/43.jpg" alt="Hackman3D Orbit Controller" width="900">
+</p>
 
-The goal of this project is to provide an affordable DIY alternative using readily available components and fully 3D printable parts.
+An open-source DIY 6-DOF navigation controller built with an Arduino Pro Micro and Hall Effect joysticks.
+
+This repository contains everything needed to build your own controller, including the firmware, Bill of Materials, wiring diagrams, board files, and documentation.
 
 ---
 
