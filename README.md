@@ -1,3 +1,7 @@
+![License](https://img.shields.io/github/license/HackMan3D/HackMan3D-Orbit-Controller)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
+![Arduino](https://img.shields.io/badge/Arduino-Pro%20Micro-00979D?logo=arduino)
+![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen)
 # Hackman3D Orbit Controller
 
 An open-source, low-cost 6-DOF 3D navigation controller designed for CAD, 3D modeling, digital sculpting, and other creative applications.
