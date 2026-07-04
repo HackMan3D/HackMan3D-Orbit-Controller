@@ -44,14 +44,16 @@ This repository contains everything needed to build your own controller, includi
 
 ## Hardware Requirements
 
-* Arduino Pro Micro (ATmega32U4)
-* 4× Hall Effect joystick modules
-* Optional mechanical keyboard switches
-* Standard metric screws
-* USB-C cable
+* Arduino Pro Micro (ATmega32U4) USB-C 5v/16mhz
+* 4× Hall Effect joystick modules (JH16 joystick hall effecct)
+* Optional mechanical keyboard switches (3 Mechanical Switchs)
+* Dupont wires female to female 15cm
+* Standard metric screws (M2 Countersunk and M3 Socket Head)
+* 4x M2x10 / 6x M2x6 / 4x M3x6 / 2x M3x8 / 4x M3x10 / 1x M3x12
+* USB-C cable (1m or 2m)
 * 3D printed parts
 
-A complete list of components is available in the **BOM** folder.
+A complete list of components is available in the **BOM** pdf.
 
 ---
 
