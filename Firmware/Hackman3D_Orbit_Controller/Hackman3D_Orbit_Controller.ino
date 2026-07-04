@@ -82,6 +82,10 @@ const unsigned long DEBUG_SERIAL_INTERVAL_MS = 100;
 // FR: Plus la valeur est basse, plus la rotation est prioritaire.
 const float ROTATION_PRIORITY = 0.65;
 
+// EN: If false, multiple axes can be sent at the same time.
+// FR: Si faux, plusieurs axes peuvent être envoyés en même temps.
+const bool ENABLE_DOMINANT_AXIS_FILTER = false;
+
 
 // ============================================================================
 // AXIS INVERSION / INVERSION DES AXES
@@ -940,7 +944,9 @@ void loop() {
   // DOMINANT AXIS FILTER / FILTRE D’AXE DOMINANT
   // --------------------------------------------------------------------------
 
-  keepOnlyDominantAxis(transX, transY, transZ, rotX, rotY, rotZ);
+  if (ENABLE_DOMINANT_AXIS_FILTER) {
+    keepOnlyDominantAxis(transX, transY, transZ, rotX, rotY, rotZ);
+  }
 
   // --------------------------------------------------------------------------
   // RESPONSE CURVE / COURBE DE RÉPONSE

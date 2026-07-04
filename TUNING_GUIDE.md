@@ -41,6 +41,7 @@ const unsigned long DEBUG_SERIAL_BAUD = 115200;
 const unsigned long DEBUG_SERIAL_INTERVAL_MS = 100;
 
 const float ROTATION_PRIORITY = 0.65;
+const bool ENABLE_DOMINANT_AXIS_FILTER = false;
 
 // PIN CONFIGURATION / CONFIGURATION DES PINS
 const int buttonPins[3] = { 2, 3, 7 };
@@ -577,7 +578,49 @@ const float ROTATION_PRIORITY = 0.85;
 
 ---
 
-## 11. Center calibration samples
+## 11. Dominant axis filter
+
+```cpp
+const bool ENABLE_DOMINANT_AXIS_FILTER = false;
+```
+
+This setting controls whether the firmware keeps only the strongest movement axis.
+
+When this value is `false`, several axes can be sent at the same time.
+This allows combined movements such as moving and rotating together.
+
+When this value is `true`, only the strongest axis is kept and the others are cancelled.
+This can make the controller easier to control, but it also prevents natural multi-axis movement.
+
+### Set this value to false if:
+
+- you want smooth multi-axis navigation;
+- diagonal or combined movements feel blocked;
+- moving and rotating at the same time feels difficult.
+
+### Set this value to true if:
+
+- unwanted diagonal movements are too frequent;
+- the controller feels difficult to control;
+- you prefer one movement direction at a time.
+
+### Example
+
+Allow several axes at the same time:
+
+```cpp
+const bool ENABLE_DOMINANT_AXIS_FILTER = false;
+```
+
+Keep only the strongest axis:
+
+```cpp
+const bool ENABLE_DOMINANT_AXIS_FILTER = true;
+```
+
+---
+
+## 12. Center calibration samples
 
 ```cpp
 const int CENTER_SAMPLES = 100;
@@ -613,7 +656,7 @@ const int CENTER_SAMPLES = 150;
 
 ---
 
-## 12. Common problems and suggested fixes
+## 13. Common problems and suggested fixes
 
 ### The controller moves by itself
 
@@ -749,6 +792,30 @@ const float GAIN_TY = 1.1;
 
 ---
 
+### Multi-axis movement feels blocked
+
+Try:
+
+```cpp
+const bool ENABLE_DOMINANT_AXIS_FILTER = false;
+```
+
+This allows several axes to be sent at the same time.
+
+---
+
+### Too many diagonal movements
+
+Try:
+
+```cpp
+const bool ENABLE_DOMINANT_AXIS_FILTER = true;
+```
+
+This keeps only the strongest movement axis and cancels the others.
+
+---
+
 ### Small movements are not detected
 
 Try:
@@ -782,7 +849,7 @@ const float GAIN_RZ = 1.6;
 
 ---
 
-## 13. Recommended tuning method
+## 14. Recommended tuning method
 
 Change only one setting at a time.
 
@@ -794,8 +861,9 @@ Recommended order:
 4. Adjust `MAX_SPEED_SCALE`.
 5. Adjust `RESPONSE_CURVE`.
 6. Adjust `SPEED_MODE_SCALE` and `SPEED_MODE_RESPONSE_CURVE` if you use speed modes.
-7. Adjust translation and rotation gains only if one axis needs correction.
-8. Adjust `ROTATION_PRIORITY` only if rotation and translation are mixed.
+7. Adjust `ENABLE_DOMINANT_AXIS_FILTER` if multi-axis movement feels blocked or too loose.
+8. Adjust translation and rotation gains only if one axis needs correction.
+9. Adjust `ROTATION_PRIORITY` only if rotation and translation are mixed.
 
 After each change:
 
@@ -807,7 +875,7 @@ After each change:
 
 ---
 
-## 14. Safe default values
+## 15. Safe default values
 
 If tuning goes wrong, you can return to these default values:
 
@@ -846,6 +914,7 @@ const unsigned long DEBUG_SERIAL_BAUD = 115200;
 const unsigned long DEBUG_SERIAL_INTERVAL_MS = 100;
 
 const float ROTATION_PRIORITY = 0.65;
+const bool ENABLE_DOMINANT_AXIS_FILTER = false;
 
 const int buttonPins[3] = { 2, 3, 7 };
 const int BUTTON_COUNT = 3;
@@ -858,7 +927,7 @@ const unsigned long MODE_SWITCH_DEBOUNCE_MS = 500;
 
 ---
 
-## 15. Final note
+## 16. Final note
 
 Small hardware differences, joystick tolerances, soldering, wire routing, and printed part tolerances can affect the final feel of the controller.
 
