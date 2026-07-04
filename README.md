@@ -104,9 +104,11 @@ Works with most software supporting 3Dconnexion devices, including:
 
 ## STL Files
 
-The complete set of printable STL files is available on Creality Cloud:
+The complete set of printable STL files is available on Creality Cloud and makerworld :
 
 👉 **https://www.crealitycloud.com/model-detail/hackman3d-orbit-controller**
+
+👉 **https://makerworld.com/fr/models/3009119**
 
 If you enjoy the project, don't hesitate to leave a ❤️, download the files, and share your makes!
 
