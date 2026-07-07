@@ -86,6 +86,41 @@ const float ROTATION_PRIORITY = 0.65;
 // FR: Si faux, plusieurs axes peuvent être envoyés en même temps.
 const bool ENABLE_DOMINANT_AXIS_FILTER = false;
 
+// EN: Experimental mode for slicers without native SpaceMouse support.
+// FR: Mode expérimental pour les slicers sans support SpaceMouse natif.
+const bool ENABLE_SLICER_MOUSE_MODE = true;
+const bool DEFAULT_SLICER_MOUSE_MODE = false;
+const bool ENABLE_SLICER_KEYBOARD_SHORTCUTS = true;
+const int SLICER_MOUSE_MOVE_DIVISOR = 120;
+const int SLICER_MOUSE_WHEEL_THRESHOLD = 90;
+const int SLICER_MOUSE_WHEEL_FULL_SCALE = 700;
+const int SLICER_MOUSE_MAX_MOVE = 12;
+const int SLICER_MOUSE_MAX_WHEEL = 1;
+const unsigned long SLICER_MOUSE_WHEEL_MIN_INTERVAL_MS = 45;
+const unsigned long SLICER_MOUSE_WHEEL_MAX_INTERVAL_MS = 125;
+const bool SLICER_MOUSE_AUTO_DRAG = true;
+const uint8_t SLICER_MOUSE_BUTTON_LEFT = 0x01;
+const uint8_t SLICER_MOUSE_BUTTON_RIGHT = 0x02;
+const uint8_t SLICER_MOUSE_BUTTON_MIDDLE = 0x04;
+const uint8_t SLICER_MOUSE_DRAG_BUTTON = SLICER_MOUSE_BUTTON_LEFT;
+const uint8_t SLICER_SHORTCUT_MODIFIER_PRIMARY = 0x08; // macOS Command
+const uint8_t SLICER_SHORTCUT_MODIFIER_SHIFT = 0x02;
+const uint8_t SLICER_SHORTCUT_KEY_0 = 0x27;
+const uint8_t SLICER_SHORTCUT_KEY_A = 0x04;
+const uint8_t SLICER_SHORTCUT_KEY_G = 0x0A;
+const uint8_t SLICER_SHORTCUT_KEY_L = 0x0F;
+const uint8_t SLICER_SHORTCUT_KEY_N = 0x11;
+const uint8_t SLICER_SHORTCUT_KEY_TAB = 0x2B;
+const int SLICER_BUTTON_ACTION_HOME = 1;
+const int SLICER_BUTTON_ACTION_PAINT = 2;
+const int SLICER_BUTTON_ACTION_TAB_SEND = 3;
+const unsigned long SLICER_BUTTON_LONG_PRESS_MS = 650;
+const int SLICER_BUTTON_ACTIONS[3] = {
+  SLICER_BUTTON_ACTION_TAB_SEND,
+  SLICER_BUTTON_ACTION_PAINT,
+  SLICER_BUTTON_ACTION_HOME
+};
+
 
 // ============================================================================
 // AXIS INVERSION / INVERSION DES AXES
@@ -136,6 +171,13 @@ const unsigned long MODE_SWITCH_CHORD_WINDOW_MS = 250;
 // FR: Temps minimum entre deux changements de mode de vitesse.
 const unsigned long MODE_SWITCH_DEBOUNCE_MS = 500;
 
+// EN: Button indexes used to toggle CAD / slicer mouse mode. Default = buttons 2 + 3.
+// FR: Index des boutons utilisés pour basculer CAD / souris slicer. Défaut = boutons 2 + 3.
+const int SLICER_MODE_BUTTONS[BUTTON_COUNT] = { 1, 2, 0 };
+const int SLICER_MODE_BUTTON_COUNT = 2;
+const unsigned long SLICER_MODE_HOLD_MS = 250;
+const unsigned long SLICER_MODE_DEBOUNCE_MS = 500;
+
 
 // ============================================================================
 // GLOBAL VARIABLES / VARIABLES GLOBALES
@@ -157,6 +199,7 @@ int16_t smoothRZ = 0;
 // EN: Current speed profile index.
 // FR: Index du profil de vitesse actuel.
 int currentSpeedMode = DEFAULT_SPEED_MODE;
+bool slicerMouseModeEnabled = ENABLE_SLICER_MOUSE_MODE && DEFAULT_SLICER_MOUSE_MODE;
 
 bool modeSwitchComboWasPressed = false;
 bool modeSwitchChordActive = false;
@@ -165,6 +208,17 @@ bool modeSwitchButtonsForwarded = false;
 uint32_t modeSwitchPendingButtons = 0;
 unsigned long modeSwitchChordStartedAt = 0;
 unsigned long lastModeSwitchAt = 0;
+
+bool slicerModeComboWasPressed = false;
+bool slicerModeToggleHandled = false;
+uint8_t slicerMouseButtonMask = 0;
+bool slicerButtonWasPressed[3] = { false, false, false };
+bool slicerButtonLongHandled[3] = { false, false, false };
+unsigned long slicerButtonPressedAt[3] = { 0, 0, 0 };
+unsigned long slicerModeComboStartedAt = 0;
+unsigned long lastSlicerModeSwitchAt = 0;
+unsigned long lastSlicerMouseWheelAt = 0;
+int8_t lastSlicerMouseWheelDirection = 0;
 
 
 // ============================================================================
@@ -230,6 +284,254 @@ static const uint8_t hidReportDescriptor[] PROGMEM = {
 
   0xC0
 };
+
+static const uint8_t mouseReportDescriptor[] PROGMEM = {
+  0x05, 0x01,        // Usage Page (Generic Desktop)
+  0x09, 0x02,        // Usage (Mouse)
+  0xA1, 0x01,        // Collection (Application)
+  0x85, 0x01,        //   Report ID (1)
+  0x09, 0x01,        //   Usage (Pointer)
+  0xA1, 0x00,        //   Collection (Physical)
+  0x05, 0x09,        //     Usage Page (Button)
+  0x19, 0x01,        //     Usage Minimum (Button 1)
+  0x29, 0x03,        //     Usage Maximum (Button 3)
+  0x15, 0x00,        //     Logical Minimum (0)
+  0x25, 0x01,        //     Logical Maximum (1)
+  0x95, 0x03,        //     Report Count (3)
+  0x75, 0x01,        //     Report Size (1)
+  0x81, 0x02,        //     Input (Data, Variable, Absolute)
+  0x95, 0x01,        //     Report Count (1)
+  0x75, 0x05,        //     Report Size (5)
+  0x81, 0x03,        //     Input (Constant, Variable, Absolute)
+  0x05, 0x01,        //     Usage Page (Generic Desktop)
+  0x09, 0x30,        //     Usage (X)
+  0x09, 0x31,        //     Usage (Y)
+  0x09, 0x38,        //     Usage (Wheel)
+  0x15, 0x81,        //     Logical Minimum (-127)
+  0x25, 0x7F,        //     Logical Maximum (127)
+  0x75, 0x08,        //     Report Size (8)
+  0x95, 0x03,        //     Report Count (3)
+  0x81, 0x06,        //     Input (Data, Variable, Relative)
+  0xC0,              //   End Collection
+  0xC0               // End Collection
+};
+
+static const uint8_t keyboardReportDescriptor[] PROGMEM = {
+  0x05, 0x01,        // Usage Page (Generic Desktop)
+  0x09, 0x06,        // Usage (Keyboard)
+  0xA1, 0x01,        // Collection (Application)
+  0x85, 0x02,        //   Report ID (2)
+  0x05, 0x07,        //   Usage Page (Keyboard)
+  0x19, 0xE0,        //   Usage Minimum (Keyboard LeftControl)
+  0x29, 0xE7,        //   Usage Maximum (Keyboard Right GUI)
+  0x15, 0x00,        //   Logical Minimum (0)
+  0x25, 0x01,        //   Logical Maximum (1)
+  0x75, 0x01,        //   Report Size (1)
+  0x95, 0x08,        //   Report Count (8)
+  0x81, 0x02,        //   Input (Data, Variable, Absolute)
+  0x95, 0x01,        //   Report Count (1)
+  0x75, 0x08,        //   Report Size (8)
+  0x81, 0x03,        //   Input (Constant, Variable, Absolute)
+  0x95, 0x06,        //   Report Count (6)
+  0x75, 0x08,        //   Report Size (8)
+  0x15, 0x00,        //   Logical Minimum (0)
+  0x25, 0x73,        //   Logical Maximum (115)
+  0x05, 0x07,        //   Usage Page (Keyboard)
+  0x19, 0x00,        //   Usage Minimum (Reserved)
+  0x29, 0x73,        //   Usage Maximum (Keyboard Application)
+  0x81, 0x00,        //   Input (Data, Array, Absolute)
+  0xC0               // End Collection
+};
+
+
+// ============================================================================
+// SlicerMouseHID_
+// EN: Separate USB HID mouse interface with keyboard report for slicer mode.
+// FR: Interface USB HID souris séparée avec rapport clavier pour le mode slicer.
+// ============================================================================
+
+class SlicerMouseHID_ : public PluggableUSBModule {
+public:
+  SlicerMouseHID_(void);
+  int sendReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel);
+  int sendKeyboardReport(uint8_t modifiers, uint8_t key);
+
+protected:
+  int getInterface(uint8_t* interfaceCount);
+  int getDescriptor(USBSetup& setup);
+  bool setup(USBSetup& setup);
+  uint8_t getShortName(char* name);
+
+private:
+  uint8_t epType[1];
+  uint8_t protocol;
+  uint8_t idle;
+};
+
+SlicerMouseHID_::SlicerMouseHID_(void)
+  : PluggableUSBModule(1, 1, epType),
+    protocol(HID_REPORT_PROTOCOL),
+    idle(1) {
+  epType[0] = EP_TYPE_INTERRUPT_IN;
+
+  HID();
+
+  if (ENABLE_SLICER_MOUSE_MODE) {
+    PluggableUSB().plug(this);
+  }
+}
+
+int SlicerMouseHID_::getInterface(uint8_t* interfaceCount) {
+  *interfaceCount += 1;
+  uint16_t descriptorSize = sizeof(mouseReportDescriptor);
+
+  if (ENABLE_SLICER_KEYBOARD_SHORTCUTS) {
+    descriptorSize += sizeof(keyboardReportDescriptor);
+  }
+
+  HIDDescriptor hidInterface = {
+    D_INTERFACE(pluggedInterface, 1, USB_DEVICE_CLASS_HUMAN_INTERFACE,
+                HID_SUBCLASS_BOOT_INTERFACE, HID_PROTOCOL_MOUSE),
+    D_HIDREPORT(descriptorSize),
+    D_ENDPOINT(USB_ENDPOINT_IN(pluggedEndpoint), USB_ENDPOINT_TYPE_INTERRUPT,
+               USB_EP_SIZE, 0x01)
+  };
+
+  return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
+}
+
+int SlicerMouseHID_::getDescriptor(USBSetup& setup) {
+  if (setup.bmRequestType != REQUEST_DEVICETOHOST_STANDARD_INTERFACE) {
+    return 0;
+  }
+
+  if (setup.wValueH != HID_REPORT_DESCRIPTOR_TYPE) {
+    return 0;
+  }
+
+  if (setup.wIndex != pluggedInterface) {
+    return 0;
+  }
+
+  protocol = HID_REPORT_PROTOCOL;
+
+  int mouseResult = USB_SendControl(TRANSFER_PGM, mouseReportDescriptor, sizeof(mouseReportDescriptor));
+
+  if (mouseResult < 0 || !ENABLE_SLICER_KEYBOARD_SHORTCUTS) {
+    return mouseResult;
+  }
+
+  int keyboardResult = USB_SendControl(TRANSFER_PGM, keyboardReportDescriptor,
+                                       sizeof(keyboardReportDescriptor));
+
+  if (keyboardResult < 0) {
+    return keyboardResult;
+  }
+
+  return mouseResult + keyboardResult;
+}
+
+bool SlicerMouseHID_::setup(USBSetup& setup) {
+  if (setup.wIndex != pluggedInterface) {
+    return false;
+  }
+
+  uint8_t request = setup.bRequest;
+  uint8_t requestType = setup.bmRequestType;
+
+  if (requestType == REQUEST_DEVICETOHOST_CLASS_INTERFACE) {
+    if (request == HID_GET_REPORT || request == HID_GET_PROTOCOL) {
+      return true;
+    }
+
+    if (request == HID_GET_IDLE) {
+      return true;
+    }
+  }
+
+  if (requestType == REQUEST_HOSTTODEVICE_CLASS_INTERFACE) {
+    if (request == HID_SET_PROTOCOL) {
+      protocol = setup.wValueL;
+      return true;
+    }
+
+    if (request == HID_SET_IDLE) {
+      idle = setup.wValueL;
+      return true;
+    }
+
+    if (request == HID_SET_REPORT) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+uint8_t SlicerMouseHID_::getShortName(char* name) {
+  name[0] = 'M';
+  name[1] = 'O';
+  name[2] = 'U';
+  return 3;
+}
+
+int SlicerMouseHID_::sendReport(uint8_t buttons, int8_t x, int8_t y, int8_t wheel) {
+  uint8_t reportId = 1;
+  uint8_t report[4] = {
+    buttons,
+    (uint8_t)x,
+    (uint8_t)y,
+    (uint8_t)wheel
+  };
+
+  int reportIdResult = USB_Send(pluggedEndpoint, &reportId, 1);
+
+  if (reportIdResult < 0) {
+    return reportIdResult;
+  }
+
+  int reportResult = USB_Send(pluggedEndpoint | TRANSFER_RELEASE, report, 4);
+
+  if (reportResult < 0) {
+    return reportResult;
+  }
+
+  return reportIdResult + reportResult;
+}
+
+int SlicerMouseHID_::sendKeyboardReport(uint8_t modifiers, uint8_t key) {
+  if (!ENABLE_SLICER_KEYBOARD_SHORTCUTS) {
+    return 0;
+  }
+
+  uint8_t reportId = 2;
+  uint8_t report[8] = {
+    modifiers,
+    0,
+    key,
+    0,
+    0,
+    0,
+    0,
+    0
+  };
+
+  int reportIdResult = USB_Send(pluggedEndpoint, &reportId, 1);
+
+  if (reportIdResult < 0) {
+    return reportIdResult;
+  }
+
+  int reportResult = USB_Send(pluggedEndpoint | TRANSFER_RELEASE, report, 8);
+
+  if (reportResult < 0) {
+    return reportResult;
+  }
+
+  return reportIdResult + reportResult;
+}
+
+SlicerMouseHID_ SlicerMouseHID;
 
 
 // ============================================================================
@@ -565,6 +867,33 @@ uint32_t getModeSwitchButtonMask() {
 
 
 // ============================================================================
+// getSlicerModeButtonMask()
+// EN: Builds a bit mask from the configured slicer-mode buttons.
+// FR: Crée un masque à partir des boutons configurés pour le mode slicer.
+// ============================================================================
+
+uint32_t getSlicerModeButtonMask() {
+  if (SLICER_MODE_BUTTON_COUNT <= 0 || SLICER_MODE_BUTTON_COUNT > BUTTON_COUNT) {
+    return 0;
+  }
+
+  uint32_t comboMask = 0;
+
+  for (int i = 0; i < SLICER_MODE_BUTTON_COUNT; i++) {
+    int buttonIndex = SLICER_MODE_BUTTONS[i];
+
+    if (buttonIndex < 0 || buttonIndex >= BUTTON_COUNT) {
+      return 0;
+    }
+
+    comboMask |= (1UL << buttonIndex);
+  }
+
+  return comboMask;
+}
+
+
+// ============================================================================
 // isModeSwitchComboPressed()
 // EN: Checks if the configured speed mode button combo is pressed.
 // FR: Vérifie si la combinaison de changement de mode est appuyée.
@@ -578,6 +907,23 @@ bool isModeSwitchComboPressed(uint32_t buttonMask) {
   }
 
   return (buttonMask & comboMask) == comboMask;
+}
+
+
+// ============================================================================
+// isSlicerModeComboPressed()
+// EN: Checks if only the configured slicer-mode combo is pressed.
+// FR: Vérifie si seule la combinaison du mode slicer est appuyée.
+// ============================================================================
+
+bool isSlicerModeComboPressed(uint32_t buttonMask) {
+  uint32_t comboMask = getSlicerModeButtonMask();
+
+  if (!ENABLE_SLICER_MOUSE_MODE || comboMask == 0) {
+    return false;
+  }
+
+  return buttonMask == comboMask;
 }
 
 
@@ -604,6 +950,39 @@ void updateSpeedMode(bool comboPressed) {
   }
 
   modeSwitchComboWasPressed = comboPressed;
+}
+
+
+// ============================================================================
+// updateSlicerMouseMode()
+// EN: Toggles CAD / slicer mouse emulation mode.
+// FR: Bascule entre CAD et émulation souris pour slicer.
+// ============================================================================
+
+void updateSlicerMouseMode(bool comboPressed) {
+  unsigned long now = millis();
+
+  if (comboPressed && !slicerModeComboWasPressed) {
+    slicerModeComboStartedAt = now;
+    slicerModeToggleHandled = false;
+  }
+
+  if (comboPressed &&
+      !slicerModeToggleHandled &&
+      now - slicerModeComboStartedAt >= SLICER_MODE_HOLD_MS &&
+      now - lastSlicerModeSwitchAt >= SLICER_MODE_DEBOUNCE_MS) {
+    slicerMouseModeEnabled = !slicerMouseModeEnabled;
+    lastSlicerModeSwitchAt = now;
+    slicerModeToggleHandled = true;
+    releaseSlicerMouseButtons();
+    resetSmoothing();
+  }
+
+  if (!comboPressed) {
+    slicerModeToggleHandled = false;
+  }
+
+  slicerModeComboWasPressed = comboPressed;
 }
 
 
@@ -657,7 +1036,7 @@ uint32_t filterModeSwitchButtons(uint32_t buttonMask, bool comboPressed, bool &c
     modeSwitchPendingButtons |= activeSwitchButtons;
   }
 
-  if (comboPressed && now - modeSwitchChordStartedAt <= MODE_SWITCH_CHORD_WINDOW_MS) {
+  if (comboPressed) {
     modeSwitchChordComboTriggered = true;
     comboAccepted = true;
     return nonSwitchButtons;
@@ -674,6 +1053,340 @@ uint32_t filterModeSwitchButtons(uint32_t buttonMask, bool comboPressed, bool &c
 
   modeSwitchButtonsForwarded = true;
   return buttonMask;
+}
+
+
+// ============================================================================
+// filterSlicerModeButtons()
+// EN: Suppresses slicer-mode combo buttons while toggling mode.
+// FR: Bloque les boutons du raccourci slicer pendant le basculement de mode.
+// ============================================================================
+
+uint32_t filterSlicerModeButtons(uint32_t buttonMask, bool comboPressed) {
+  if (!ENABLE_SLICER_MOUSE_MODE || !comboPressed) {
+    return buttonMask;
+  }
+
+  uint32_t comboMask = getSlicerModeButtonMask();
+
+  if (comboMask == 0) {
+    return buttonMask;
+  }
+
+  return buttonMask & ~comboMask;
+}
+
+
+// ============================================================================
+// scaleMouseAxis()
+// EN: Converts HID axis values to small relative mouse movements.
+// FR: Convertit les axes HID en petits mouvements relatifs de souris.
+// ============================================================================
+
+int8_t scaleMouseAxis(int16_t value, int divisor, int maxValue) {
+  if (abs(value) < DEADZONE_OUTPUT) {
+    return 0;
+  }
+
+  int scaled = value / divisor;
+
+  if (scaled == 0) {
+    scaled = (value > 0) ? 1 : -1;
+  }
+
+  if (scaled > maxValue) {
+    scaled = maxValue;
+  }
+
+  if (scaled < -maxValue) {
+    scaled = -maxValue;
+  }
+
+  return (int8_t)scaled;
+}
+
+
+// ============================================================================
+// scaleMouseWheel()
+// EN: Sends wheel impulses slowly enough for slicer zoom control.
+// FR: Envoie les impulsions de molette assez lentement pour le zoom slicer.
+// ============================================================================
+
+int8_t scaleMouseWheel(int16_t value) {
+  int magnitude = abs(value);
+
+  if (magnitude < SLICER_MOUSE_WHEEL_THRESHOLD) {
+    lastSlicerMouseWheelDirection = 0;
+    return 0;
+  }
+
+  unsigned long now = millis();
+  int cappedMagnitude = magnitude;
+
+  if (cappedMagnitude > SLICER_MOUSE_WHEEL_FULL_SCALE) {
+    cappedMagnitude = SLICER_MOUSE_WHEEL_FULL_SCALE;
+  }
+
+  int wheelRange = SLICER_MOUSE_WHEEL_FULL_SCALE - SLICER_MOUSE_WHEEL_THRESHOLD;
+
+  if (wheelRange < 1) {
+    wheelRange = 1;
+  }
+
+  unsigned long intervalRange = SLICER_MOUSE_WHEEL_MAX_INTERVAL_MS -
+                                SLICER_MOUSE_WHEEL_MIN_INTERVAL_MS;
+  unsigned long interval = SLICER_MOUSE_WHEEL_MAX_INTERVAL_MS -
+                           ((unsigned long)(cappedMagnitude - SLICER_MOUSE_WHEEL_THRESHOLD) *
+                            intervalRange / wheelRange);
+  int8_t direction = (value > 0) ? -SLICER_MOUSE_MAX_WHEEL : SLICER_MOUSE_MAX_WHEEL;
+
+  if (direction == lastSlicerMouseWheelDirection &&
+      now - lastSlicerMouseWheelAt < interval) {
+    return 0;
+  }
+
+  lastSlicerMouseWheelAt = now;
+  lastSlicerMouseWheelDirection = direction;
+
+  return direction;
+}
+
+
+// ============================================================================
+// sendSlicerMouseReport()
+// EN: Sends a relative USB mouse report for slicer mouse emulation.
+// FR: Envoie un rapport souris USB relatif pour l’émulation slicer.
+// ============================================================================
+
+void sendSlicerMouseReport(int8_t x, int8_t y, int8_t wheel) {
+  SlicerMouseHID.sendReport(slicerMouseButtonMask, x, y, wheel);
+}
+
+
+// ============================================================================
+// setSlicerMouseButton()
+// EN: Updates one mouse button used by slicer mouse emulation.
+// FR: Met à jour un bouton souris utilisé par l’émulation slicer.
+// ============================================================================
+
+void setSlicerMouseButton(uint8_t button, bool pressed) {
+  uint8_t previousMask = slicerMouseButtonMask;
+
+  if (pressed) {
+    slicerMouseButtonMask |= button;
+  } else {
+    slicerMouseButtonMask &= ~button;
+  }
+
+  if (slicerMouseButtonMask != previousMask) {
+    sendSlicerMouseReport(0, 0, 0);
+  }
+}
+
+
+// ============================================================================
+// releaseSlicerMouseButtons()
+// EN: Releases mouse buttons used by slicer mouse emulation.
+// FR: Relâche les boutons souris utilisés par l’émulation slicer.
+// ============================================================================
+
+void releaseSlicerMouseButtons() {
+  if (slicerMouseButtonMask == 0) {
+    return;
+  }
+
+  slicerMouseButtonMask = 0;
+  sendSlicerMouseReport(0, 0, 0);
+}
+
+
+// ============================================================================
+// sendSlicerKeyboardShortcut()
+// EN: Sends one keyboard shortcut through the slicer keyboard interface.
+// FR: Envoie un raccourci clavier via l’interface clavier slicer.
+// ============================================================================
+
+void sendSlicerKeyboardShortcut(uint8_t modifiers, uint8_t key) {
+  if (!ENABLE_SLICER_KEYBOARD_SHORTCUTS) {
+    return;
+  }
+
+  SlicerMouseHID.sendKeyboardReport(modifiers, key);
+  delay(20);
+  SlicerMouseHID.sendKeyboardReport(0, 0);
+}
+
+
+// ============================================================================
+// resetSlicerButtonActions()
+// EN: Clears slicer button shortcut state without sending actions.
+// FR: Réinitialise l’état des raccourcis sans envoyer d’action.
+// ============================================================================
+
+void resetSlicerButtonActions() {
+  for (int i = 0; i < BUTTON_COUNT; i++) {
+    slicerButtonWasPressed[i] = false;
+    slicerButtonLongHandled[i] = false;
+    slicerButtonPressedAt[i] = 0;
+  }
+
+  if (ENABLE_SLICER_KEYBOARD_SHORTCUTS) {
+    SlicerMouseHID.sendKeyboardReport(0, 0);
+  }
+}
+
+
+// ============================================================================
+// runSlicerButtonAction()
+// EN: Runs one configured slicer button shortcut.
+// FR: Exécute un raccourci configuré pour un bouton slicer.
+// ============================================================================
+
+void runSlicerButtonAction(int action, bool longPress) {
+  releaseSlicerMouseButtons();
+
+  if (action == SLICER_BUTTON_ACTION_HOME) {
+    if (longPress) {
+      sendSlicerKeyboardShortcut(0, SLICER_SHORTCUT_KEY_A);
+    } else {
+      sendSlicerKeyboardShortcut(SLICER_SHORTCUT_MODIFIER_PRIMARY, SLICER_SHORTCUT_KEY_0);
+    }
+
+    return;
+  }
+
+  if (action == SLICER_BUTTON_ACTION_PAINT) {
+    if (longPress) {
+      sendSlicerKeyboardShortcut(0, SLICER_SHORTCUT_KEY_L);
+    } else {
+      sendSlicerKeyboardShortcut(0, SLICER_SHORTCUT_KEY_N);
+    }
+
+    return;
+  }
+
+  if (action == SLICER_BUTTON_ACTION_TAB_SEND) {
+    if (longPress) {
+      sendSlicerKeyboardShortcut(SLICER_SHORTCUT_MODIFIER_PRIMARY | SLICER_SHORTCUT_MODIFIER_SHIFT,
+                                 SLICER_SHORTCUT_KEY_G);
+    } else {
+      sendSlicerKeyboardShortcut(0, SLICER_SHORTCUT_KEY_TAB);
+    }
+  }
+}
+
+
+// ============================================================================
+// updateSlicerMouseButtons()
+// EN: Maps physical buttons to slicer shortcuts while slicer mode is active.
+// FR: Associe les boutons physiques aux raccourcis en mode slicer.
+// ============================================================================
+
+void updateSlicerMouseButtons(uint32_t buttonMask, bool suppressButtons) {
+  if (suppressButtons) {
+    releaseSlicerMouseButtons();
+    resetSlicerButtonActions();
+    return;
+  }
+
+  if (!ENABLE_SLICER_KEYBOARD_SHORTCUTS) {
+    return;
+  }
+
+  unsigned long now = millis();
+
+  for (int i = 0; i < BUTTON_COUNT; i++) {
+    bool pressed = (buttonMask & (1UL << i)) != 0;
+    int action = SLICER_BUTTON_ACTIONS[i];
+
+    if (pressed && !slicerButtonWasPressed[i]) {
+      slicerButtonWasPressed[i] = true;
+      slicerButtonLongHandled[i] = false;
+      slicerButtonPressedAt[i] = now;
+    }
+
+    if (pressed &&
+        (action == SLICER_BUTTON_ACTION_PAINT ||
+         action == SLICER_BUTTON_ACTION_TAB_SEND ||
+         action == SLICER_BUTTON_ACTION_HOME) &&
+        !slicerButtonLongHandled[i] &&
+        now - slicerButtonPressedAt[i] >= SLICER_BUTTON_LONG_PRESS_MS) {
+      runSlicerButtonAction(action, true);
+      slicerButtonLongHandled[i] = true;
+    }
+
+    if (!pressed && slicerButtonWasPressed[i]) {
+      if (!slicerButtonLongHandled[i]) {
+        runSlicerButtonAction(action, false);
+      }
+
+      slicerButtonWasPressed[i] = false;
+      slicerButtonLongHandled[i] = false;
+      slicerButtonPressedAt[i] = 0;
+    }
+  }
+}
+
+
+// ============================================================================
+// sendSlicerMouse()
+// EN: Sends mouse drag / wheel events for slicers without SpaceMouse support.
+// FR: Envoie drag souris / molette pour les slicers sans support SpaceMouse.
+// ============================================================================
+
+void sendSlicerMouse(int16_t tx, int16_t ty, int16_t tz,
+                     int16_t rx, int16_t ry, int16_t rz) {
+  int translationPower = abs(tx) + abs(ty);
+  int rotationPower = abs(rx) + abs(ry) + abs(rz);
+  bool zoomActive = abs(tz) >= SLICER_MOUSE_WHEEL_THRESHOLD;
+
+  int8_t wheel = scaleMouseWheel(tz);
+  int8_t mouseX = 0;
+  int8_t mouseY = 0;
+
+  if (zoomActive) {
+    releaseSlicerMouseButtons();
+
+    if (wheel != 0) {
+      sendSlicerMouseReport(0, 0, wheel);
+    }
+
+    return;
+  }
+
+  if (!SLICER_MOUSE_AUTO_DRAG) {
+    if (rotationPower > translationPower && rotationPower > DEADZONE_OUTPUT) {
+      mouseX = scaleMouseAxis(ry + rz, SLICER_MOUSE_MOVE_DIVISOR, SLICER_MOUSE_MAX_MOVE);
+      mouseY = scaleMouseAxis(rx, SLICER_MOUSE_MOVE_DIVISOR, SLICER_MOUSE_MAX_MOVE);
+    } else if (translationPower > DEADZONE_OUTPUT) {
+      mouseX = scaleMouseAxis(tx, SLICER_MOUSE_MOVE_DIVISOR, SLICER_MOUSE_MAX_MOVE);
+      mouseY = scaleMouseAxis(ty, SLICER_MOUSE_MOVE_DIVISOR, SLICER_MOUSE_MAX_MOVE);
+    }
+
+    if (mouseX != 0 || mouseY != 0 || wheel != 0) {
+      sendSlicerMouseReport(mouseX, mouseY, wheel);
+    }
+
+    return;
+  }
+
+  if (rotationPower > translationPower && rotationPower > DEADZONE_OUTPUT) {
+    setSlicerMouseButton(SLICER_MOUSE_DRAG_BUTTON, true);
+
+    mouseX = scaleMouseAxis(ry + rz, SLICER_MOUSE_MOVE_DIVISOR, SLICER_MOUSE_MAX_MOVE);
+    mouseY = scaleMouseAxis(rx, SLICER_MOUSE_MOVE_DIVISOR, SLICER_MOUSE_MAX_MOVE);
+  } else if (translationPower > DEADZONE_OUTPUT) {
+    setSlicerMouseButton(SLICER_MOUSE_DRAG_BUTTON, true);
+
+    mouseX = scaleMouseAxis(tx, SLICER_MOUSE_MOVE_DIVISOR, SLICER_MOUSE_MAX_MOVE);
+    mouseY = scaleMouseAxis(ty, SLICER_MOUSE_MOVE_DIVISOR, SLICER_MOUSE_MAX_MOVE);
+  } else {
+    releaseSlicerMouseButtons();
+  }
+
+  if (mouseX != 0 || mouseY != 0 || wheel != 0) {
+    sendSlicerMouseReport(mouseX, mouseY, wheel);
+  }
 }
 
 
@@ -810,12 +1523,15 @@ void loop() {
   int v[8];
   uint32_t buttonMask = readButtonMask();
   bool modeSwitchComboPressed = isModeSwitchComboPressed(buttonMask);
+  bool slicerModeComboPressed = isSlicerModeComboPressed(buttonMask);
   bool modeSwitchComboAccepted = false;
   uint32_t hidButtonMask = filterModeSwitchButtons(buttonMask,
                                                   modeSwitchComboPressed,
                                                   modeSwitchComboAccepted);
+  hidButtonMask = filterSlicerModeButtons(hidButtonMask, slicerModeComboPressed);
 
   updateSpeedMode(modeSwitchComboAccepted);
+  updateSlicerMouseMode(slicerModeComboPressed);
 
   // EN: Read raw joystick values.
   // FR: Lecture des valeurs brutes des joysticks.
@@ -1016,15 +1732,25 @@ void loop() {
   // FR:
   // L’ordre des axes est ajusté ici pour correspondre au comportement du driver
   // 3Dconnexion.
-  sendCommand(
-    outputRX,
-    outputRZ,
-    outputRY,
-    outputTX,
-    outputTZ,
-    outputTY
-  );
+  if (slicerMouseModeEnabled) {
+    sendCommand(0, 0, 0, 0, 0, 0);
+    sendButtons(0);
+    updateSlicerMouseButtons(buttonMask, modeSwitchComboPressed || slicerModeComboPressed);
+    sendSlicerMouse(outputTX, outputTY, outputTZ, outputRX, outputRY, outputRZ);
+  } else {
+    releaseSlicerMouseButtons();
 
-  sendButtons(hidButtonMask);
+    sendCommand(
+      outputRX,
+      outputRZ,
+      outputRY,
+      outputTX,
+      outputTZ,
+      outputTY
+    );
+
+    sendButtons(hidButtonMask);
+  }
+
   debugPrintState(v, outputTX, outputTY, outputTZ, outputRX, outputRY, outputRZ, buttonMask);
 }

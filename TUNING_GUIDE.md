@@ -43,6 +43,19 @@ const unsigned long DEBUG_SERIAL_INTERVAL_MS = 100;
 const float ROTATION_PRIORITY = 0.65;
 const bool ENABLE_DOMINANT_AXIS_FILTER = false;
 
+const bool ENABLE_SLICER_MOUSE_MODE = true;
+const bool DEFAULT_SLICER_MOUSE_MODE = false;
+const bool ENABLE_SLICER_KEYBOARD_SHORTCUTS = true;
+const int SLICER_MOUSE_MOVE_DIVISOR = 120;
+const int SLICER_MOUSE_WHEEL_THRESHOLD = 90;
+const int SLICER_MOUSE_WHEEL_FULL_SCALE = 700;
+const int SLICER_MOUSE_MAX_MOVE = 12;
+const int SLICER_MOUSE_MAX_WHEEL = 1;
+const unsigned long SLICER_MOUSE_WHEEL_MIN_INTERVAL_MS = 45;
+const unsigned long SLICER_MOUSE_WHEEL_MAX_INTERVAL_MS = 125;
+const bool SLICER_MOUSE_AUTO_DRAG = true;
+const unsigned long SLICER_BUTTON_LONG_PRESS_MS = 650;
+
 // PIN CONFIGURATION / CONFIGURATION DES PINS
 const int buttonPins[3] = { 2, 3, 7 };
 const int BUTTON_COUNT = 3;
@@ -51,6 +64,10 @@ const int MODE_SWITCH_BUTTON_COUNT = 3;
 const bool MODE_SWITCH_SUPPRESS_BUTTONS = true;
 const unsigned long MODE_SWITCH_CHORD_WINDOW_MS = 250;
 const unsigned long MODE_SWITCH_DEBOUNCE_MS = 500;
+const int SLICER_MODE_BUTTONS[BUTTON_COUNT] = { 1, 2, 0 };
+const int SLICER_MODE_BUTTON_COUNT = 2;
+const unsigned long SLICER_MODE_HOLD_MS = 250;
+const unsigned long SLICER_MODE_DEBOUNCE_MS = 500;
 ```
 
 After changing a value, upload the firmware again with Arduino IDE and test the controller in your 3D/CAD software.
@@ -401,7 +418,95 @@ Keep `MODE_SWITCH_DEBOUNCE_MS` around `300` to `700` unless one press changes mo
 
 ---
 
-## 7. Serial debug output
+## 7. Slicer mouse mode
+
+```cpp
+const bool ENABLE_SLICER_MOUSE_MODE = true;
+const bool DEFAULT_SLICER_MOUSE_MODE = false;
+const bool ENABLE_SLICER_KEYBOARD_SHORTCUTS = true;
+
+const int SLICER_MODE_BUTTONS[BUTTON_COUNT] = { 1, 2, 0 };
+const int SLICER_MODE_BUTTON_COUNT = 2;
+const unsigned long SLICER_MODE_HOLD_MS = 250;
+const unsigned long SLICER_MODE_DEBOUNCE_MS = 500;
+```
+
+Slicer mouse mode is for slicers or 3D applications that do not react to SpaceMouse HID reports.
+
+Default startup is normal CAD mode.
+By default, holding buttons `2 + 3` switches between CAD mode and slicer mouse mode.
+
+Button indexes start from `0`, so the default slicer-mode shortcut uses:
+
+```cpp
+1, 2
+```
+
+This means physical buttons `2` and `3`.
+
+### Disable slicer mouse mode
+
+```cpp
+const bool ENABLE_SLICER_MOUSE_MODE = false;
+```
+
+### Start directly in slicer mouse mode
+
+```cpp
+const bool DEFAULT_SLICER_MOUSE_MODE = true;
+```
+
+### Mouse movement and zoom
+
+```cpp
+const int SLICER_MOUSE_MOVE_DIVISOR = 120;
+const int SLICER_MOUSE_WHEEL_THRESHOLD = 90;
+const int SLICER_MOUSE_WHEEL_FULL_SCALE = 700;
+const int SLICER_MOUSE_MAX_MOVE = 12;
+const int SLICER_MOUSE_MAX_WHEEL = 1;
+const unsigned long SLICER_MOUSE_WHEEL_MIN_INTERVAL_MS = 45;
+const unsigned long SLICER_MOUSE_WHEEL_MAX_INTERVAL_MS = 125;
+const bool SLICER_MOUSE_AUTO_DRAG = true;
+```
+
+`SLICER_MOUSE_MOVE_DIVISOR` controls drag speed.
+Increase it if the view moves too fast.
+Decrease it if the view moves too slowly.
+
+`SLICER_MOUSE_WHEEL_THRESHOLD` controls when zoom starts.
+Increase it if zoom starts too easily.
+Decrease it if zoom needs too much movement.
+
+`SLICER_MOUSE_WHEEL_MIN_INTERVAL_MS` and `SLICER_MOUSE_WHEEL_MAX_INTERVAL_MS` control zoom repeat speed.
+Use higher values for slower zoom.
+Use lower values for faster zoom.
+
+### Button shortcuts
+
+```cpp
+const unsigned long SLICER_BUTTON_LONG_PRESS_MS = 650;
+const int SLICER_BUTTON_ACTIONS[3] = {
+  SLICER_BUTTON_ACTION_TAB_SEND,
+  SLICER_BUTTON_ACTION_PAINT,
+  SLICER_BUTTON_ACTION_HOME
+};
+```
+
+Default slicer shortcuts:
+
+1. button `1`: short press = `Tab`, long press = `Cmd + Shift + G`;
+2. button `2`: short press = `N`, long press = `L`;
+3. button `3`: short press = `Cmd + 0`, long press = `A`.
+
+The `Cmd` shortcuts are macOS defaults.
+Change the key codes if your slicer uses different shortcuts on another operating system.
+
+Pressing all three buttons still changes the speed mode.
+This combo is not sent as normal button presses.
+
+---
+
+## 8. Serial debug output
 
 ```cpp
 const bool DEBUG_SERIAL = false;
@@ -437,7 +542,7 @@ Then open the Arduino Serial Monitor or Serial Plotter at:
 
 ---
 
-## 8. Translation sensitivity
+## 9. Translation sensitivity
 
 ```cpp
 const float GAIN_TX = 1.3;
@@ -485,7 +590,7 @@ const float GAIN_TX = 1.6;
 
 ---
 
-## 9. Rotation sensitivity
+## 10. Rotation sensitivity
 
 ```cpp
 const float GAIN_RX = 1.8;
@@ -534,7 +639,7 @@ const float GAIN_RY = 2.1;
 
 ---
 
-## 10. Rotation priority
+## 11. Rotation priority
 
 ```cpp
 const float ROTATION_PRIORITY = 0.65;
@@ -578,7 +683,7 @@ const float ROTATION_PRIORITY = 0.85;
 
 ---
 
-## 11. Dominant axis filter
+## 12. Dominant axis filter
 
 ```cpp
 const bool ENABLE_DOMINANT_AXIS_FILTER = false;
@@ -620,7 +725,7 @@ const bool ENABLE_DOMINANT_AXIS_FILTER = true;
 
 ---
 
-## 12. Center calibration samples
+## 13. Center calibration samples
 
 ```cpp
 const int CENTER_SAMPLES = 100;
@@ -656,7 +761,7 @@ const int CENTER_SAMPLES = 150;
 
 ---
 
-## 13. Common problems and suggested fixes
+## 14. Common problems and suggested fixes
 
 ### The controller moves by itself
 
@@ -761,6 +866,46 @@ Use a higher value if one shortcut press cycles through more than one speed mode
 
 ---
 
+### A slicer does not react to SpaceMouse movement
+
+Try switching to slicer mouse mode with buttons `2 + 3`.
+
+If you want the controller to start in slicer mode while testing:
+
+```cpp
+const bool DEFAULT_SLICER_MOUSE_MODE = true;
+```
+
+Set it back to `false` for normal CAD startup.
+
+---
+
+### Slicer mouse zoom is too fast or too slow
+
+For slower zoom, try:
+
+```cpp
+const unsigned long SLICER_MOUSE_WHEEL_MIN_INTERVAL_MS = 70;
+const unsigned long SLICER_MOUSE_WHEEL_MAX_INTERVAL_MS = 160;
+```
+
+For faster zoom, try lower values.
+
+---
+
+### Slicer shortcut keys do not work
+
+Check that shortcuts are enabled:
+
+```cpp
+const bool ENABLE_SLICER_KEYBOARD_SHORTCUTS = true;
+```
+
+The default `Cmd` shortcuts are macOS-oriented.
+Change the key codes if your slicer or operating system uses different shortcuts.
+
+---
+
 ### You need to check joystick or button values
 
 Try:
@@ -849,7 +994,7 @@ const float GAIN_RZ = 1.6;
 
 ---
 
-## 14. Recommended tuning method
+## 15. Recommended tuning method
 
 Change only one setting at a time.
 
@@ -861,9 +1006,10 @@ Recommended order:
 4. Adjust `MAX_SPEED_SCALE`.
 5. Adjust `RESPONSE_CURVE`.
 6. Adjust `SPEED_MODE_SCALE` and `SPEED_MODE_RESPONSE_CURVE` if you use speed modes.
-7. Adjust `ENABLE_DOMINANT_AXIS_FILTER` if multi-axis movement feels blocked or too loose.
-8. Adjust translation and rotation gains only if one axis needs correction.
-9. Adjust `ROTATION_PRIORITY` only if rotation and translation are mixed.
+7. Adjust slicer mouse settings only if you use slicer mouse mode.
+8. Adjust `ENABLE_DOMINANT_AXIS_FILTER` if multi-axis movement feels blocked or too loose.
+9. Adjust translation and rotation gains only if one axis needs correction.
+10. Adjust `ROTATION_PRIORITY` only if rotation and translation are mixed.
 
 After each change:
 
@@ -875,7 +1021,7 @@ After each change:
 
 ---
 
-## 15. Safe default values
+## 16. Safe default values
 
 If tuning goes wrong, you can return to these default values:
 
@@ -916,6 +1062,19 @@ const unsigned long DEBUG_SERIAL_INTERVAL_MS = 100;
 const float ROTATION_PRIORITY = 0.65;
 const bool ENABLE_DOMINANT_AXIS_FILTER = false;
 
+const bool ENABLE_SLICER_MOUSE_MODE = true;
+const bool DEFAULT_SLICER_MOUSE_MODE = false;
+const bool ENABLE_SLICER_KEYBOARD_SHORTCUTS = true;
+const int SLICER_MOUSE_MOVE_DIVISOR = 120;
+const int SLICER_MOUSE_WHEEL_THRESHOLD = 90;
+const int SLICER_MOUSE_WHEEL_FULL_SCALE = 700;
+const int SLICER_MOUSE_MAX_MOVE = 12;
+const int SLICER_MOUSE_MAX_WHEEL = 1;
+const unsigned long SLICER_MOUSE_WHEEL_MIN_INTERVAL_MS = 45;
+const unsigned long SLICER_MOUSE_WHEEL_MAX_INTERVAL_MS = 125;
+const bool SLICER_MOUSE_AUTO_DRAG = true;
+const unsigned long SLICER_BUTTON_LONG_PRESS_MS = 650;
+
 const int buttonPins[3] = { 2, 3, 7 };
 const int BUTTON_COUNT = 3;
 const int MODE_SWITCH_BUTTONS[BUTTON_COUNT] = { 0, 1, 2 };
@@ -923,11 +1082,15 @@ const int MODE_SWITCH_BUTTON_COUNT = 3;
 const bool MODE_SWITCH_SUPPRESS_BUTTONS = true;
 const unsigned long MODE_SWITCH_CHORD_WINDOW_MS = 250;
 const unsigned long MODE_SWITCH_DEBOUNCE_MS = 500;
+const int SLICER_MODE_BUTTONS[BUTTON_COUNT] = { 1, 2, 0 };
+const int SLICER_MODE_BUTTON_COUNT = 2;
+const unsigned long SLICER_MODE_HOLD_MS = 250;
+const unsigned long SLICER_MODE_DEBOUNCE_MS = 500;
 ```
 
 ---
 
-## 16. Final note
+## 17. Final note
 
 Small hardware differences, joystick tolerances, soldering, wire routing, and printed part tolerances can affect the final feel of the controller.
 

@@ -25,6 +25,7 @@ This repository contains everything needed to build your own controller, includi
 * Arduino Pro Micro based firmware
 * Adjustable speed profiles and response curve
 * Configurable multi-axis movement filtering
+* Optional slicer mouse emulation mode
 * USB-C connectivity
 * Fully 3D printable design
 * Optional mechanical shortcut buttons
@@ -82,6 +83,25 @@ Works with most software supporting 3Dconnexion devices, including:
 - Cura
 - PrusaSlicer
 - and many more.
+
+For slicers with limited native 3D mouse support, the firmware also includes an optional mouse emulation mode.
+This mode sends mouse drag, wheel zoom, and configurable keyboard shortcuts instead of 3Dconnexion movement reports.
+
+---
+
+## Slicer Mouse Mode
+
+Hold buttons `2 + 3` together to switch between normal CAD mode and slicer mouse mode.
+
+Default slicer shortcuts:
+
+| Button | Short press | Long press |
+|--------|-------------|------------|
+| 1 | Tab | Cmd + Shift + G |
+| 2 | N | L |
+| 3 | Cmd + 0 | A |
+
+Pressing all three buttons still changes the speed profile.
 
 ---
 
@@ -175,6 +195,8 @@ This is an independent open-source DIY project and is not affiliated with or end
 ## Credits
 
 Designed by **HackMan3D**
+
+Additional features, testing, and feedback by [Kitek](https://www.crealitycloud.com/user/7734397320).
 
 This project is released free of charge for the maker community.
 
