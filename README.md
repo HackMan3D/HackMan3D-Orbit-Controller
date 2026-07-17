@@ -16,6 +16,8 @@ This repository contains everything needed to build your own controller, includi
 
 > **This is my first large open-source hardware project after nearly four months of development. I've been using this controller daily for the past two months and now consider it ready to share with the maker community. Documentation and tutorials will continue to improve thanks to your feedback.**
 
+
+UPDATE : Full Assembly Youtube Video : https://www.youtube.com/watch?v=l8wjwXb5LGA
 ---
 
 ## Features
