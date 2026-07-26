@@ -1,8 +1,10 @@
-![License](https://img.shields.io/github/license/HackMan3D/HackMan3D-Orbit-Controller)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)
-![Arduino](https://img.shields.io/badge/Arduino-Pro%20Micro-00979D?logo=arduino)
-![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen)
-[![GitHub stars](https://img.shields.io/github/stars/HackMan3D/HackMan3D-Orbit-Controller?style=social)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-EA6D2F?style=flat-square)](LICENSE)
+![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20macOS%20%7C%20Linux-0A84FF?style=flat-square)
+![Hardware](https://img.shields.io/badge/Hardware-Arduino%20Pro%20Micro-00979D?style=flat-square&logo=arduino&logoColor=white)
+![Controller](https://img.shields.io/badge/Controller-6--DOF-7B61FF?style=flat-square)
+![Sensors](https://img.shields.io/badge/Joysticks-Hall%20Effect-00A6A6?style=flat-square)
+![Open source](https://img.shields.io/badge/Open%20Source-Yes-39A845?style=flat-square)
+[![GitHub stars](https://img.shields.io/github/stars/HackMan3D/HackMan3D-Orbit-Controller?style=flat-square&logo=github&label=Stars)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/stargazers)
 
 # Hackman3D Orbit Controller
 
