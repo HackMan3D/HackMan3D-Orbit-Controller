@@ -1,1 +1,7 @@
 .DS_Store
+.arduinoIDE/
+build/
+*.eep
+*.elf
+*.hex
+*.map

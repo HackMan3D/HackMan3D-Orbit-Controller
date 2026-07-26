@@ -4,6 +4,7 @@
 // ============================================================================
 // Hackman3D DIY SpaceMouse Firmware
 // Firmware for Arduino Pro Micro / ATmega32U4
+// Version: 1.0.0
 //
 // EN: This firmware turns an Arduino Pro Micro into a 6-axis HID SpaceMouse.
 // FR: Ce firmware transforme un Arduino Pro Micro en souris 3D HID 6 axes.

@@ -1,0 +1,76 @@
+name: Bug report
+description: Report a reproducible Orbit hardware, firmware, or compatibility problem.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for helping improve Orbit. Do not include passwords, serial numbers, or other private data.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Firmware / USB HID
+        - Hardware / wiring
+        - 3D-printed parts
+        - CAD application compatibility
+        - Slicer mouse mode
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Orbit firmware version
+      placeholder: v1.0.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, application and version, Arduino IDE and board-package version.
+      placeholder: Windows 11, Fusion 360 2.x, Arduino IDE 2.x
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Connect Orbit
+        2. Open ...
+        3. Move ...
+    validations:
+      required: true
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware and wiring
+      description: Pro Micro model, joystick model, cable, and any relevant wiring details.
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional information
+      description: Add logs, screenshots, photos, or a short video if useful.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched the existing issues.
+          required: true
+        - label: I tested with a USB data cable and the latest release.
+          required: true
