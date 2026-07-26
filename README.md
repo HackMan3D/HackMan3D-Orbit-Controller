@@ -8,7 +8,7 @@
 ![Sensors](https://img.shields.io/badge/Joysticks-Hall%20Effect-00A6A6?style=flat-square)
 ![Open source](https://img.shields.io/badge/Open%20Source-Yes-39A845?style=flat-square)
 [![GitHub stars](https://img.shields.io/github/stars/HackMan3D/HackMan3D-Orbit-Controller?style=flat-square&logo=github&label=Stars)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/stargazers)
-[![Downloads](https://img.shields.io/github/downloads/HackMan3D/HackMan3D-Orbit-Controller/total?style=flat-square&logo=github&label=Downloads)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/releases)
+[![Downloads](https://img.shields.io/github/downloads/HackMan3D/HackMan3D-Orbit-Controller/total?style=flat-square&logo=github&label=Downloads&color=0A84FF&cacheSeconds=300)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/releases)
 [![Views](https://hits.sh/github.com/HackMan3D/HackMan3D-Orbit-Controller.svg?style=flat-square&label=Views&color=0A84FF)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller)
 
 <p align="center">
