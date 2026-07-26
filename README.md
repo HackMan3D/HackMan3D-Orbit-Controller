@@ -1,3 +1,6 @@
+# HackMan3D Orbit Controller
+
+[![Latest release](https://img.shields.io/github/v/release/HackMan3D/HackMan3D-Orbit-Controller?style=flat-square&label=Release&color=0A84FF)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/releases/latest)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-EA6D2F?style=flat-square)](LICENSE)
 ![Platforms](https://img.shields.io/badge/Platforms-Windows%20%7C%20macOS%20%7C%20Linux-0A84FF?style=flat-square)
 ![Hardware](https://img.shields.io/badge/Hardware-Arduino%20Pro%20Micro-00979D?style=flat-square&logo=arduino&logoColor=white)
@@ -8,218 +11,127 @@
 [![Downloads](https://img.shields.io/github/downloads/HackMan3D/HackMan3D-Orbit-Controller/total?style=flat-square&logo=github&label=Downloads)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/releases)
 [![Views](https://hits.sh/github.com/HackMan3D/HackMan3D-Orbit-Controller.svg?style=flat-square&label=Views&color=0A84FF)](https://github.com/HackMan3D/HackMan3D-Orbit-Controller)
 
-# Hackman3D Orbit Controller
-
 <p align="center">
-  <img src="images/43.jpg" alt="Hackman3D Orbit Controller" width="900">
+  <img src="images/43.jpg" alt="HackMan3D Orbit Controller" width="900">
 </p>
 
-An open-source DIY 6-DOF navigation controller built with an Arduino Pro Micro and Hall Effect joysticks.
+An open-source, fully 3D-printable 6-DOF navigation controller built around an Arduino Pro Micro and four Hall-effect joysticks. Orbit provides native 3D-controller input for CAD applications and an optional mouse-emulation mode for slicers.
 
-This repository contains everything needed to build your own controller, including the firmware, Bill of Materials, wiring diagrams, board files, and documentation.
+## Start here
 
-> **This is my first large open-source hardware project after nearly four months of development. I've been using this controller daily for the past two months and now consider it ready to share with the maker community. Documentation and tutorials will continue to improve thanks to your feedback.**
+1. Download the ready-to-use package from the [latest release](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/releases/latest).
+2. Print the parts from [Creality Cloud](https://www.crealitycloud.com/model-detail/hackman3d-orbit-controller) or [MakerWorld](https://makerworld.com/en/models/3009119).
+3. Order the components listed in the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf).
+4. Follow the [Assembly Guide](Documentation/HackMan3D_Orbit_Controller_Assembly_Guide.pdf) and [wiring diagram](Wiring/Orbit_Controller_Wiring_Diagram.png).
+5. Install the [NavCore 3D Controller board package](https://github.com/NavCoree/3D-controller-Board-package) in Arduino IDE.
+6. Open `Firmware/Hackman3D_Orbit_Controller/Hackman3D_Orbit_Controller.ino`, select the Arduino Pro Micro target, and upload it.
+7. Keep the controller untouched for one second after connecting it while the joysticks calibrate.
 
-
-UPDATE : Full Assembly Youtube Video : https://www.youtube.com/watch?v=l8wjwXb5LGA
----
+The complete assembly video is available on [YouTube](https://www.youtube.com/watch?v=l8wjwXb5LGA).
 
 ## Features
 
-* 6 Degrees of Freedom (6-DOF)
-* Hall Effect joystick technology
-* Arduino Pro Micro based firmware
-* Adjustable speed profiles and response curve
-* Configurable multi-axis movement filtering
-* Optional slicer mouse emulation mode
-* USB-C connectivity
-* Fully 3D printable design
-* Optional mechanical shortcut buttons
-* Open-source hardware and firmware
-* Compatible with Windows, macOS, and Linux
+- Six degrees of freedom: translation and rotation on three axes
+- Four Hall-effect joysticks for contactless position sensing
+- Three adjustable speed profiles
+- Configurable dead zones, gain, smoothing, response curves, and axis inversion
+- Multi-axis input with optional dominant-axis filtering
+- Three configurable shortcut buttons
+- Optional slicer mouse-emulation mode
+- Native USB HID operation; no Orbit application is required
+- Windows, macOS, and Linux support
 
----
+## Compatibility
 
-## Repository Contents
+Orbit works with applications that support 3Dconnexion-style HID controllers, including:
 
-| Folder | Description |
-|--------|-------------|
-| Firmware | Arduino source code |
-| BOM | Complete Bill of Materials |
-| Wiring | Wiring diagrams |
-| Documentation | Assembly and installation guides |
+| Category | Tested or commonly supported applications |
+|---|---|
+| CAD and 3D | Fusion 360, Blender, SolidWorks, FreeCAD, Onshape, Autodesk Inventor, Rhino |
+| Slicers | Bambu Studio, Cura, PrusaSlicer |
+| Operating systems | Windows, macOS, Linux |
 
----
+Application support can vary by version and operating system. Slicers without native 3D-mouse support can use Orbit's optional mouse-emulation mode.
 
-## Hardware Requirements
+## Hardware
 
-* Arduino Pro Micro (ATmega32U4) USB-C 5v/16mhz
-* 4× Hall Effect joystick modules (JH16 joystick hall effecct)
-* Optional mechanical keyboard switches (3 Mechanical Switchs)
-* Dupont wires female to female 15cm
-* Standard metric screws (M2 Countersunk and M3 Socket Head)
-* 4x M2x10 / 6x M2x6 / 4x M3x6 / 2x M3x8 / 4x M3x10 / 1x M3x12
-* USB-C cable (1m or 2m)
-* 3D printed parts
+- 1× Arduino Pro Micro, ATmega32U4, 5 V / 16 MHz, USB-C
+- 4× JH16 Hall-effect joystick modules
+- 3× optional mechanical keyboard switches
+- Female-to-female Dupont wires, approximately 15 cm
+- USB-C data cable
+- 3D-printed parts
+- Fasteners:
+  - 4× M2×10 countersunk
+  - 6× M2×6 countersunk
+  - 4× M3×6 socket head
+  - 2× M3×8 socket head
+  - 4× M3×10 socket head
+  - 1× M3×12 socket head
 
-A complete list of components is available in the **BOM** pdf.
+Check the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf) before ordering.
 
----
+## Controls
 
-## Software Requirements
+### CAD mode
 
-* Arduino IDE
-* Required board package
-* 3Dconnexion Driver (Windows, macOS, Linux)
+- Move and twist the knob for translation and rotation.
+- Press all three buttons together to cycle through the speed profiles.
 
----
+### Slicer mouse mode
 
-## Compatible Applications
-
-Works with most software supporting 3Dconnexion devices, including:
-
-- Fusion 360
-- Blender
-- SolidWorks
-- FreeCAD
-- Onshape
-- Autodesk Inventor
-- Rhino
-- Bambu Studio
-- Cura
-- PrusaSlicer
-- and many more.
-
-For slicers with limited native 3D mouse support, the firmware also includes an optional mouse emulation mode.
-This mode sends mouse drag, wheel zoom, and configurable keyboard shortcuts instead of 3Dconnexion movement reports.
-
----
-
-## Slicer Mouse Mode
-
-Hold buttons `2 + 3` together to switch between normal CAD mode and slicer mouse mode.
-
-Default slicer shortcuts:
+Hold buttons 2 and 3 together to switch between CAD mode and slicer mouse mode.
 
 | Button | Short press | Long press |
-|--------|-------------|------------|
-| 1 | Tab | Cmd + Shift + G |
+|---|---|---|
+| 1 | Tab | Command + Shift + G |
 | 2 | N | L |
-| 3 | Cmd + 0 | A |
+| 3 | Command + 0 | A |
 
-Pressing all three buttons still changes the speed profile.
+The default shortcuts target macOS workflows and can be changed in the firmware. Pressing all three buttons still changes the speed profile.
 
----
+## Tuning and troubleshooting
 
-## Operating System Compatibility
+The controller calibrates itself every time it starts. Place it on a stable surface, do not touch the knob, and wait about one second after connecting it.
 
-| Operating System | Status |
-|------------------|--------|
-| Windows | ✅ Supported |
-| macOS | ✅ Supported |
-| Linux | ✅ Supported |
+If an axis drifts, feels too sensitive, moves in the wrong direction, or needs a different response curve, use the [Tuning Guide](TUNING_GUIDE.md). All user-adjustable values are grouped near the top of the firmware.
 
----
+For problems:
 
-## Getting Started
+1. Review the [open issues](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/issues).
+2. Confirm that the USB cable supports data.
+3. Confirm the selected Arduino board and port.
+4. Open a [bug report](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/issues/new?template=bug_report.yml) with the requested diagnostic information.
 
-1. Print all required parts.
-2. Purchase the components listed in the BOM.
-3. Assemble the controller following the documentation.
-4. Upload the firmware to the Arduino Pro Micro.
-5. Install the required driver.
-6. Enjoy your new DIY 3D navigation controller!
+## Repository contents
 
----
-
-## STL Files
-
-The complete set of printable STL files is available on Creality Cloud and makerworld :
-
-👉 **https://www.crealitycloud.com/model-detail/hackman3d-orbit-controller**
-
-👉 **https://makerworld.com/fr/models/3009119**
-
-If you enjoy the project, don't hesitate to leave a ❤️, download the files, and share your makes!
-
----
-
-## Open Source Philosophy
-
-This project is intended to be built, modified and improved by the community.
-
-Feel free to fork it, adapt it to your needs, and share your own improvements.
-
-Every contribution helps make the project better.
-
----
-
-## Roadmap
-
-- [x] Hardware design
-- [x] Firmware
-- [x] Complete documentation
-- [x] Windows support
-- [x] macOS support
-- [x] Linux support
-- [ ] Configuration utility
-- [ ] Additional button layouts
-- [ ] Community requested improvements
-
----
-
-## License
-
-The firmware contained in this repository is released under the **GNU General Public License v3.0 (GPL-3.0)**.
-
-3D printable files may be distributed under a separate license. Please refer to the STL repository for licensing information.
-
----
+| Path | Contents |
+|---|---|
+| `Firmware/` | Arduino source code |
+| `Documentation/` | Assembly guide and Bill of Materials |
+| `Wiring/` | Pinout and wiring diagrams |
+| `images/` | Project media |
+| `TUNING_GUIDE.md` | Calibration and response settings |
+| `CHANGELOG.md` | Published version history |
 
 ## Contributing
 
-Bug reports, improvements, and pull requests are always welcome.
+Bug fixes, documentation improvements, hardware feedback, and tested enhancements are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
-If you build your own controller or improve the project, feel free to share it with the community!
+Please report security-sensitive problems according to [SECURITY.md](SECURITY.md), rather than in a public issue.
 
----
+## License
 
-## Support
+The repository is licensed under the [GNU Affero General Public License v3.0](LICENSE). Printable model platforms may provide their files under separate terms; check the license shown on the relevant model page before redistributing them.
 
-If you have any questions, open an Issue or start a Discussion.
+Orbit is an independent community project and is not affiliated with or endorsed by 3Dconnexion.
 
-Feedback is always appreciated and helps improve the project.
+## Credits and support
 
----
-
-## Disclaimer
-
-This is an independent open-source DIY project and is not affiliated with or endorsed by 3Dconnexion.
-
----
-
-## Credits
-
-Designed by **HackMan3D**
+Designed and maintained by **HackMan3D**.
 
 Additional features, testing, and feedback by [Kitek](https://www.crealitycloud.com/user/7734397320).
 
-This project is released free of charge for the maker community.
+Special thanks to [NavCore](https://github.com/NavCoree/3D-controller-Board-package) for the Arduino board package that enables native 3D-controller compatibility on the Pro Micro.
 
-### Special Thanks
-
-Special thanks to **NavCore** for developing and maintaining the custom Arduino board package that enables native 3Dconnexion compatibility on the Arduino Pro Micro.
-
-Board package:
-
-https://github.com/NavCoree/3D-controller-Board-package
-
-Without this work, native 3Dconnexion support on the Arduino Pro Micro would not have been possible.
-
----
-
-If you build one, I'd genuinely love to see it.
-
-Don't hesitate to share your photos, remixes or improvements with the community!
-
-⭐ If you like this project, consider starring this repository.
+If Orbit is useful to you, star the repository, share your build, and help other makers by reporting your tested hardware and software combinations.
