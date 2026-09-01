@@ -71,6 +71,8 @@ Application support can vary by version and operating system. Slicers without na
 
 Check the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf) before ordering.
 
+Aliexpress Pack : https://www.aliexpress.com/item/1005013045830245.html
+
 ## Controls
 
 ### CAD mode
