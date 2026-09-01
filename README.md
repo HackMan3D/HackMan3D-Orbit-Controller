@@ -21,7 +21,7 @@ An open-source, fully 3D-printable 6-DOF navigation controller built around an A
 
 1. Download the ready-to-use package from the [latest release](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/releases/latest).
 2. Print the parts from [Creality Cloud](https://www.crealitycloud.com/model-detail/hackman3d-orbit-controller) or [MakerWorld](https://makerworld.com/en/models/3009119).
-3. Order the components listed in the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf).
+3. Order the components listed in the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf), including the [recommended JH16 Hall-effect joystick modules](https://www.aliexpress.com/item/1005013045830245.html).
 4. Follow the [Assembly Guide](Documentation/HackMan3D_Orbit_Controller_Assembly_Guide.pdf) and [wiring diagram](Wiring/Orbit_Controller_Wiring_Diagram.png).
 5. Install the [NavCore 3D Controller board package](https://github.com/NavCoree/3D-controller-Board-package) in Arduino IDE.
 6. Open `Firmware/Hackman3D_Orbit_Controller/Hackman3D_Orbit_Controller.ino`, select the Arduino Pro Micro target, and upload it.
@@ -70,6 +70,8 @@ Application support can vary by version and operating system. Slicers without na
   - 1× M3×12 socket head
 
 Check the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf) before ordering.
+
+> **Quick purchase link:** [JH16 Hall-effect joystick modules on AliExpress](https://www.aliexpress.com/item/1005013045830245.html) — four modules are required to build Orbit.
 
 ## Controls
 
