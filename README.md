@@ -56,7 +56,7 @@ Application support can vary by version and operating system. Slicers without na
 ## Hardware
 
 - 1× Arduino Pro Micro, ATmega32U4, 5 V / 16 MHz, USB-C
-- 4× JH16 Hall-effect joystick modules
+- 4× [JH16 Hall-effect joystick modules](https://www.aliexpress.com/item/1005013045830245.html)
 - 3× optional mechanical keyboard switches
 - Female-to-female Dupont wires, approximately 15 cm
 - USB-C data cable
