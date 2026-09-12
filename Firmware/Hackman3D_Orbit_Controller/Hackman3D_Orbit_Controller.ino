@@ -99,7 +99,7 @@ const bool ENABLE_DOMINANT_AXIS_FILTER = false;
 // EN: Enable proportional cross-talk suppression to clean up minor unintended axis bleed.
 // FR: Active la suppression proportionnelle de la diaphonie pour éliminer les légers
 //     bruits parasites sur les axes non désirés.
-const bool ENABLE_PROPORTIONAL_SUPPRESSION = true;
+const bool ENABLE_PROPORTIONAL_SUPPRESSION = false;
 
 // EN: Experimental mode for slicers without native SpaceMouse support.
 // FR: Mode expérimental pour les slicers sans support SpaceMouse natif.
