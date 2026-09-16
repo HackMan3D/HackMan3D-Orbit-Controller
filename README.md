@@ -21,7 +21,7 @@ An open-source, fully 3D-printable 6-DOF navigation controller built around an A
 
 1. Download the ready-to-use package from the [latest release](https://github.com/HackMan3D/HackMan3D-Orbit-Controller/releases/latest).
 2. Print the parts from [Creality Cloud](https://www.crealitycloud.com/model-detail/hackman3d-orbit-controller) or [MakerWorld](https://makerworld.com/en/models/3009119).
-3. Order the components listed in the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf), or use the [complete Orbit component kit](https://www.aliexpress.com/item/1005013045830245.html).
+3. Order the components listed in the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf), or use the [complete Orbit component kit](https://s.click.aliexpress.com/e/_c3OkgxjX).
 4. Follow the [Assembly Guide](Documentation/HackMan3D_Orbit_Controller_Assembly_Guide.pdf) and [wiring diagram](Wiring/Orbit_Controller_Wiring_Diagram.png).
 5. Install the [NavCore 3D Controller board package](https://github.com/NavCoree/3D-controller-Board-package) in Arduino IDE.
 6. Open `Firmware/Hackman3D_Orbit_Controller/Hackman3D_Orbit_Controller.ino`, select the Arduino Pro Micro target, and upload it.
@@ -71,7 +71,9 @@ Application support can vary by version and operating system. Slicers without na
 
 Check the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf) before ordering.
 
-> **Quick purchase link:** [Complete Orbit component kit on AliExpress](https://www.aliexpress.com/item/1005013045830245.html) — a convenient pack of components for building Orbit.
+> **Quick purchase link:** [Complete Orbit component kit on AliExpress](https://s.click.aliexpress.com/e/_c3OkgxjX) — an economical option that can cost less than buying the components individually. Compare the current total including promotions and shipping, and check the seller's included-parts list before ordering.
+
+> **Affiliate links:** The kit link above and the purchase links in the BOM are affiliate links. Using them supports future open-source projects at no additional cost to you.
 
 ## Controls
 
