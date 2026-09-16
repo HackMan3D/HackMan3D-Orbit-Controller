@@ -4,18 +4,27 @@
 // ============================================================================
 // Hackman3D DIY SpaceMouse Firmware
 // Firmware for Arduino Pro Micro / ATmega32U4
-// Version: 1.0.0
+// Version: 1.1.0
 //
 // EN: This firmware turns an Arduino Pro Micro into a 6-axis HID SpaceMouse.
 // FR: Ce firmware transforme un Arduino Pro Micro en souris 3D HID 6 axes.
 //
-// Author / Auteur: Hackman3D
+// Author / Auteur: Hackman3D, kloptops w/ Gemini
 // ============================================================================
 
 
 // ============================================================================
 // SETTINGS / PARAMÈTRES
 // ============================================================================
+
+// EN: Main loop interval (ms). Fixes smoothing speed across different PCs.
+// FR: Intervalle de la boucle principale (ms). Fixe le lissage selon le PC.
+const unsigned long LOOP_INTERVAL_MS = 5;
+
+// EN: Hold all buttons for this duration to recalibrate centers on-the-fly.
+// FR: Maintenir tous les boutons pendant ce temps pour recalibrer à la volée.
+const bool ENABLE_LIVE_CALIBRATION = true;
+const unsigned long LIVE_CALIBRATION_HOLD_MS = 3000;
 
 // EN: Input deadzone applied directly after reading the joysticks.
 // FR: Zone morte appliquée juste après la lecture des joysticks.
@@ -54,9 +63,9 @@ const float GAIN_RZ = 2.0;
 // FR: Échelle globale de vitesse maximale. 0.70 signifie 30 % plus lent.
 const float MAX_SPEED_SCALE = 0.70;
 
-// EN: Response curve. 1.0 is linear; higher values make small movements slower.
-// FR: Courbe de réponse. 1.0 est linéaire ; plus haut adoucit les petits mouvements.
-const float RESPONSE_CURVE = 1.6;
+// EN: Response curve. 0.0 is linear; 1.0 is quadratic.
+// FR: Courbe de réponse. 0.0 est linéaire ; 1.0 est quadratique.
+const float RESPONSE_CURVE = 0.6;
 
 // EN: Speed profiles. Default mode 1 keeps the values above.
 // FR: Profils de vitesse. Le mode par défaut 1 garde les valeurs ci-dessus.
@@ -68,9 +77,9 @@ const float SPEED_MODE_SCALE[SPEED_MODE_COUNT] = {
   1.00
 };
 const float SPEED_MODE_RESPONSE_CURVE[SPEED_MODE_COUNT] = {
-  1.9,
+  0.9,
   RESPONSE_CURVE,
-  1.3
+  0.3
 };
 
 // EN: Serial debug output. Keep disabled during normal HID use.
@@ -86,6 +95,11 @@ const float ROTATION_PRIORITY = 0.65;
 // EN: If false, multiple axes can be sent at the same time.
 // FR: Si faux, plusieurs axes peuvent être envoyés en même temps.
 const bool ENABLE_DOMINANT_AXIS_FILTER = false;
+
+// EN: Enable proportional cross-talk suppression to clean up minor unintended axis bleed.
+// FR: Active la suppression proportionnelle de la diaphonie pour éliminer les légers
+//     bruits parasites sur les axes non désirés.
+const bool ENABLE_PROPORTIONAL_SUPPRESSION = false;
 
 // EN: Experimental mode for slicers without native SpaceMouse support.
 // FR: Mode expérimental pour les slicers sans support SpaceMouse natif.
@@ -220,6 +234,11 @@ unsigned long slicerModeComboStartedAt = 0;
 unsigned long lastSlicerModeSwitchAt = 0;
 unsigned long lastSlicerMouseWheelAt = 0;
 int8_t lastSlicerMouseWheelDirection = 0;
+
+// EN: Variables for non-blocking slicer keyboard shortcuts.
+// FR: Variables pour les raccourcis clavier slicer non bloquants.
+bool slicerKeyboardReleasePending = false;
+unsigned long slicerKeyboardReleaseTime = 0;
 
 
 // ============================================================================
@@ -714,8 +733,9 @@ int16_t applyResponseCurve(int16_t value, float inputMax,
     maxOutputMagnitude = DEADZONE_OUTPUT;
   }
 
+  float curvedNormalized = normalized * ((1.0 - responseCurve) + (responseCurve * normalized));
   float curved = DEADZONE_OUTPUT +
-                  pow(normalized, responseCurve) *
+                  curvedNormalized *
                   (maxOutputMagnitude - DEADZONE_OUTPUT);
 
   if (value < 0) {
@@ -790,6 +810,59 @@ void keepOnlyDominantAxis(int16_t &tx, int16_t &ty, int16_t &tz,
   rx = (maxIndex == 3) ? rx : 0;
   ry = (maxIndex == 4) ? ry : 0;
   rz = (maxIndex == 5) ? rz : 0;
+}
+
+
+// ============================================================================
+// applyProportionalSuppression()
+// EN: Dynamically scales down lesser axes relative to the dominant axis strength.
+//     Prevents minor cross-talk while still allowing true multi-axis compound moves.
+// FR: Réduit dynamiquement les axes secondaires par rapport à la force de l'axe dominant.
+//     Empêche les interférences mineures tout en permettant les mouvements combinés multi-axes.
+// ============================================================================
+void applyProportionalSuppression(int16_t &tx, int16_t &ty, int16_t &tz,
+                                  int16_t &rx, int16_t &ry, int16_t &rz) {
+  int16_t values[6] = { tx, ty, tz, rx, ry, rz };
+  
+  // EN: Find the absolute peak value among all 6 axes (the dominant force).
+  // FR: Trouve le pic absolu parmi les 6 axes (la force dominante).
+  int32_t maxVal = 0;
+  for (int i = 0; i < 6; i++) {
+    if (abs(values[i]) > maxVal) {
+      maxVal = abs(values[i]);
+    }
+  }
+
+  // EN: Skip if overall movement is too low to prevent filtering baseline noise.
+  // FR: Ignore si le mouvement global est trop faible pour éviter de filtrer le bruit de fond.
+  if (maxVal < 80) {
+    return;
+  }
+
+  // EN: Scale down lesser axes proportionally if they fall below a specific ratio.
+  // FR: Réduit proportionnellement les axes secondaires s'ils descendent sous un certain ratio.
+  for (int i = 0; i < 6; i++) {
+    int32_t currentVal = values[i];
+    if (currentVal == 0) continue;
+
+    float ratio = (float)abs(currentVal) / (float)maxVal;
+
+    // EN: If an axis is less than 45% of the dominant axis, attenuate it smoothly.
+    // FR: Si un axe représente moins de 45% de l'axe dominant, l'atténue en douceur.
+    if (ratio < 0.45) {
+      float suppressionFactor = ratio / 0.45;
+      suppressionFactor = suppressionFactor * suppressionFactor;
+      
+      values[i] = (int16_t)(currentVal * suppressionFactor);
+    }
+  }
+
+  tx = values[0];
+  ty = values[1];
+  tz = values[2];
+  rx = values[3];
+  ry = values[4];
+  rz = values[5];
 }
 
 
@@ -1202,6 +1275,20 @@ void releaseSlicerMouseButtons() {
 
 
 // ============================================================================
+// updateSlicerKeyboardRelease()
+// EN: Non-blocking timer to release slicer keyboard shortcuts.
+// FR: Minuteur non bloquant pour relâcher les raccourcis clavier slicer.
+// ============================================================================
+
+void updateSlicerKeyboardRelease() {
+  if (slicerKeyboardReleasePending && millis() >= slicerKeyboardReleaseTime) {
+    SlicerMouseHID.sendKeyboardReport(0, 0);
+    slicerKeyboardReleasePending = false;
+  }
+}
+
+
+// ============================================================================
 // sendSlicerKeyboardShortcut()
 // EN: Sends one keyboard shortcut through the slicer keyboard interface.
 // FR: Envoie un raccourci clavier via l’interface clavier slicer.
@@ -1213,8 +1300,8 @@ void sendSlicerKeyboardShortcut(uint8_t modifiers, uint8_t key) {
   }
 
   SlicerMouseHID.sendKeyboardReport(modifiers, key);
-  delay(20);
-  SlicerMouseHID.sendKeyboardReport(0, 0);
+  slicerKeyboardReleasePending = true;
+  slicerKeyboardReleaseTime = millis() + 20;
 }
 
 
@@ -1233,6 +1320,7 @@ void resetSlicerButtonActions() {
 
   if (ENABLE_SLICER_KEYBOARD_SHORTCUTS) {
     SlicerMouseHID.sendKeyboardReport(0, 0);
+    slicerKeyboardReleasePending = false;
   }
 }
 
@@ -1520,9 +1608,46 @@ void setup() {
 // ============================================================================
 
 void loop() {
+  // EN: Process non-blocking keyboard macro timers.
+  // FR: Traitement des minuteurs non bloquants du clavier.
+  updateSlicerKeyboardRelease();
+
+  // EN: Loop Rate Limiter.
+  // FR: Limiteur de fréquence de boucle.
+  static unsigned long lastLoopAt = 0;
+  unsigned long now = millis();
+
+  if (now - lastLoopAt < LOOP_INTERVAL_MS) {
+    return;
+  }
+  lastLoopAt = now;
+
   int raw[8];
   int v[8];
   uint32_t buttonMask = readButtonMask();
+
+  // EN: Live Calibration Check
+  // FR: Vérification de la calibration à la volée
+  if (ENABLE_LIVE_CALIBRATION) {
+    static unsigned long allButtonsPressedAt = 0;
+    static bool allButtonsWerePressed = false;
+    uint32_t allButtonsMask = (1UL << BUTTON_COUNT) - 1;
+
+    if ((buttonMask & allButtonsMask) == allButtonsMask) {
+      if (!allButtonsWerePressed) {
+        allButtonsPressedAt = now;
+      } else if (now - allButtonsPressedAt >= LIVE_CALIBRATION_HOLD_MS) {
+        calibrateCenter();
+        resetSmoothing();
+        allButtonsPressedAt = now;
+        return;
+      }
+      allButtonsWerePressed = true;
+    } else {
+      allButtonsWerePressed = false;
+    }
+  }
+
   bool modeSwitchComboPressed = isModeSwitchComboPressed(buttonMask);
   bool slicerModeComboPressed = isSlicerModeComboPressed(buttonMask);
   bool modeSwitchComboAccepted = false;
@@ -1681,6 +1806,14 @@ void loop() {
   rotZ = applyResponseCurve(rotZ, 1024.0 * GAIN_RZ, speedScale, responseCurve);
 
   // --------------------------------------------------------------------------
+  // PROPORTIONAL SUPPRESSION / SUPPRESSION PROPORTIONNELLE
+  // --------------------------------------------------------------------------
+
+  if (ENABLE_PROPORTIONAL_SUPPRESION) {
+    applyProportionalSuppression(transX, transY, transZ, rotX, rotY, rotZ);
+  }
+
+  // --------------------------------------------------------------------------
   // OUTPUT DEADZONE / ZONE MORTE DE SORTIE
   // --------------------------------------------------------------------------
 
@@ -1727,6 +1860,12 @@ void loop() {
   // SEND HID REPORTS / ENVOI DES RAPPORTS HID
   // --------------------------------------------------------------------------
 
+  static bool zeroSent = false;
+
+  bool isMoving = (outputTX != 0 || outputTY != 0 || outputTZ != 0 ||
+                   outputRX != 0 || outputRY != 0 || outputRZ != 0 ||
+                   hidButtonMask != 0);
+
   // EN:
   // Axis order is adjusted here to match the 3Dconnexion driver behavior.
   //
@@ -1734,23 +1873,37 @@ void loop() {
   // L’ordre des axes est ajusté ici pour correspondre au comportement du driver
   // 3Dconnexion.
   if (slicerMouseModeEnabled) {
-    sendCommand(0, 0, 0, 0, 0, 0);
-    sendButtons(0);
+    if (isMoving) {
+      sendCommand(0, 0, 0, 0, 0, 0);
+      sendButtons(0);
+      zeroSent = false;
+    } else if (!zeroSent) {
+      sendCommand(0, 0, 0, 0, 0, 0);
+      sendButtons(0);
+      zeroSent = true;
+    }
+    
     updateSlicerMouseButtons(buttonMask, modeSwitchComboPressed || slicerModeComboPressed);
     sendSlicerMouse(outputTX, outputTY, outputTZ, outputRX, outputRY, outputRZ);
   } else {
     releaseSlicerMouseButtons();
 
-    sendCommand(
-      outputRX,
-      outputRZ,
-      outputRY,
-      outputTX,
-      outputTZ,
-      outputTY
-    );
+    if (isMoving) {
+      sendCommand(
+        outputRX,
+        outputRY,
+        outputRZ,
+        outputTX,
+        outputTY,
+        outputTZ);
 
-    sendButtons(hidButtonMask);
+      sendButtons(hidButtonMask);
+      zeroSent = false;
+    } else if (!zeroSent) {
+      sendCommand(0, 0, 0, 0, 0, 0);
+      sendButtons(0);
+      zeroSent = true;
+    }
   }
 
   debugPrintState(v, outputTX, outputTY, outputTZ, outputRX, outputRY, outputRZ, buttonMask);

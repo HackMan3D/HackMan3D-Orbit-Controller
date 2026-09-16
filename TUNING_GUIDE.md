@@ -21,7 +21,7 @@ const float GAIN_RY = 1.8;
 const float GAIN_RZ = 2.0;
 
 const float MAX_SPEED_SCALE = 0.70;
-const float RESPONSE_CURVE = 1.6;
+const float RESPONSE_CURVE = 0.6;
 
 const int SPEED_MODE_COUNT = 3;
 const int DEFAULT_SPEED_MODE = 1;
@@ -31,9 +31,9 @@ const float SPEED_MODE_SCALE[SPEED_MODE_COUNT] = {
   1.00
 };
 const float SPEED_MODE_RESPONSE_CURVE[SPEED_MODE_COUNT] = {
-  1.9,
+  0.9,
   RESPONSE_CURVE,
-  1.3
+  0.3
 };
 
 const bool DEBUG_SERIAL = false;
@@ -42,6 +42,7 @@ const unsigned long DEBUG_SERIAL_INTERVAL_MS = 100;
 
 const float ROTATION_PRIORITY = 0.65;
 const bool ENABLE_DOMINANT_AXIS_FILTER = false;
+const bool ENABLE_PROPORTIONAL_SUPPRESSION = false;
 
 const bool ENABLE_SLICER_MOUSE_MODE = true;
 const bool DEFAULT_SLICER_MOUSE_MODE = false;
@@ -89,6 +90,13 @@ If the knob is touched during startup, the center position may be wrong and the 
 If this happens, unplug the USB cable and plug it back in without touching the knob.
 
 ---
+
+## 1.5 On-the-fly live calibration (New)
+
+If your controller begins to drift or you accidentally touched the knob during startup, you can recalibrate the center positions instantly without unplugging the USB cable.
+
+Simply **hold down all physical buttons simultaneously for 3 seconds**. 
+The controller will automatically re-sample the neutral center positions and reset its smoothing memory.
 
 ## 2. Input dead zone
 
@@ -233,7 +241,7 @@ const int SMOOTH_DIVISOR = 7;
 
 ```cpp
 const float MAX_SPEED_SCALE = 0.70;
-const float RESPONSE_CURVE = 1.6;
+const float RESPONSE_CURVE = 0.6;
 ```
 
 These values control the global speed and the response curve of the controller.
@@ -271,7 +279,7 @@ A higher `RESPONSE_CURVE` makes small movements softer and more precise.
 
 ```cpp
 MAX_SPEED_SCALE = 0.50 to 1.00
-RESPONSE_CURVE  = 1.0 to 2.2
+RESPONSE_CURVE  = 0.0 to 1.0
 ```
 
 ### Examples
@@ -280,28 +288,28 @@ Default slower profile:
 
 ```cpp
 const float MAX_SPEED_SCALE = 0.70;
-const float RESPONSE_CURVE = 1.6;
+const float RESPONSE_CURVE = 0.6;
 ```
 
 Lower maximum speed:
 
 ```cpp
 const float MAX_SPEED_SCALE = 0.50;
-const float RESPONSE_CURVE = 1.6;
+const float RESPONSE_CURVE = 0.6;
 ```
 
 Softer start near the center:
 
 ```cpp
 const float MAX_SPEED_SCALE = 0.70;
-const float RESPONSE_CURVE = 1.9;
+const float RESPONSE_CURVE = 0.9;
 ```
 
 More direct response:
 
 ```cpp
 const float MAX_SPEED_SCALE = 0.70;
-const float RESPONSE_CURVE = 1.0;
+const float RESPONSE_CURVE = 0.0;
 ```
 
 Adjust these values before changing individual axis gains.
@@ -722,6 +730,17 @@ Keep only the strongest axis:
 ```cpp
 const bool ENABLE_DOMINANT_AXIS_FILTER = true;
 ```
+
+---
+
+## 12.5 Proportional cross-talk suppression
+```cpp
+const bool ENABLE_PROPORTIONAL_SUPPRESSION = true;
+```
+
+This setting dynamically scales down minor background axes relative to the strongest dominant axis strength.
+
+Unlike the hard dominant axis filter (which completely cuts off secondary axes), proportional suppression smoothly attenuates minor hand-wobble or cross-talk while still allowing true multi-axis compound movements (like sliding and rotating at the same time).
 
 ---
 
