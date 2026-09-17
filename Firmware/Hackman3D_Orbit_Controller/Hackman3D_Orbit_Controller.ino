@@ -1809,7 +1809,7 @@ void loop() {
   // PROPORTIONAL SUPPRESSION / SUPPRESSION PROPORTIONNELLE
   // --------------------------------------------------------------------------
 
-  if (ENABLE_PROPORTIONAL_SUPPRESION) {
+  if (ENABLE_PROPORTIONAL_SUPPRESSION) {
     applyProportionalSuppression(transX, transY, transZ, rotX, rotY, rotZ);
   }
 
