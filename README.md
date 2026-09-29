@@ -75,6 +75,26 @@ Check the [Bill of Materials](Documentation/HackMan3D_Orbit_Controller_BOM.pdf) 
 
 > **Affiliate links:** The kit link above and the purchase links in the BOM are affiliate links. Using them supports future open-source projects at no additional cost to you.
 
+### Amazon US component links
+
+**Affiliate disclosure:** As an Amazon Associate I earn from qualifying purchases.
+The links below lead to Amazon.com (US). Check the selected variant and pack
+contents before ordering. These listings were compared with the documented
+requirements; the exact seller products have not been physically validated.
+
+| Component | Quantity needed | Amazon US listing / notes |
+|---|---|---|
+| Pro Micro, ATmega32U4, 5 V / 16 MHz | 1 | [DORHEA USB-C, 1 board](https://www.amazon.com/dp/B0GSZ4QDZW?tag=hackman3d-20&linkCode=ll2&linkId=a19762797fd2ae418446119c611f3b86&language=en_US&ref_=as_li_ss_tl) — Check board dimensions and pinout against the assembly guide. |
+| Mechanical switches (optional) | 3 | [BlingKingdom, pack of 10](https://link.amazon/B02E2ec8C) — MX-style blue clicky, 3-pin; check fit in the printed switch support. |
+| Female-to-female Dupont wires | As required | [EDGELEC, 120 wires, 15 cm](https://link.amazon/B0iePtvr1) — 2.54 mm connectors. |
+| USB-C data cable | 1 | [ZeroneTeck USB-C to USB-C, 3 ft](https://link.amazon/B075uRWBR) — For a USB-C host; confirm USB-C-to-C operation with your board. A basic USB data cable is sufficient; 20 Gbps / 100 W is not required. |
+| M2 countersunk screws | 6 × M2×6; 4 × M2×10 | [WZHUIDA M2, 660-piece assortment](https://link.amazon/B04AuJdUT) — Includes nuts and washers; both required screw lengths are listed. |
+| M3 socket-head screws | 4 × M3×6; 2 × M3×8; 4 × M3×10; 1 × M3×12 | [Fgruh M3, 1,120-piece assortment](https://link.amazon/B07yC1JMR) — Includes nuts and washers; all four required lengths are listed. |
+
+The four **JH16 Hall-effect joysticks** are still required. Use the existing
+Bill of Materials or complete-kit link for these; no Amazon replacement has
+been validated. Printed parts are obtained from the model links above.
+
 ## Controls
 
 ### CAD mode
